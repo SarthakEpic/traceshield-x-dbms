@@ -1,0 +1,201 @@
+<mxfile host="app.diagrams.net" modified="2026-09-20T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="traceshield-x-er" name="TraceShield X ER Diagram">
+    <mxGraphModel dx="2200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="&lt;b&gt;TraceShield X&lt;/b&gt;&lt;br&gt;Privacy-preserving temporal fraud investigation database" vertex="1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=22;fontColor=#17365d;spacingLeft=4;spacingTop=4;">
+          <mxGeometry x="30" y="0" width="900" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="institution" value="&lt;b&gt;INSTITUTION&lt;/b&gt;&lt;br&gt;institution_id PK&lt;br&gt;institution_code UQ&lt;br&gt;institution_type&lt;br&gt;status&lt;br&gt;created_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf2f8;strokeColor=#2f5597;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="30" y="80" width="210" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="investigator" value="&lt;b&gt;INVESTIGATOR&lt;/b&gt;&lt;br&gt;investigator_id PK&lt;br&gt;institution_id FK&lt;br&gt;display_name&lt;br&gt;role_code&lt;br&gt;status&lt;br&gt;created_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf2f8;strokeColor=#2f5597;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="280" y="80" width="230" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="fraud_case" value="&lt;b&gt;FRAUD_CASE&lt;/b&gt;&lt;br&gt;case_id PK&lt;br&gt;case_reference UQ&lt;br&gt;opened_by FK&lt;br&gt;severity&lt;br&gt;purpose_code&lt;br&gt;status&lt;br&gt;case_nonce_commitment&lt;br&gt;opened_at / expires_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="550" y="80" width="260" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="case_access" value="&lt;b&gt;CASE_ACCESS&lt;/b&gt;&lt;br&gt;case_id PK/FK&lt;br&gt;investigator_id PK/FK&lt;br&gt;access_level&lt;br&gt;granted_by&lt;br&gt;granted_at&lt;br&gt;expires_at&lt;br&gt;revoked_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="850" y="80" width="230" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="token_context" value="&lt;b&gt;TOKEN_CONTEXT&lt;/b&gt;&lt;br&gt;context_id PK&lt;br&gt;case_id FK&lt;br&gt;epoch_no&lt;br&gt;token_version&lt;br&gt;purpose_code&lt;br&gt;context_fingerprint UQ&lt;br&gt;status&lt;br&gt;expires_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1120" y="80" width="250" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="reveal_request" value="&lt;b&gt;REVEAL_REQUEST&lt;/b&gt;&lt;br&gt;reveal_request_id PK&lt;br&gt;case_id FK&lt;br&gt;requested_by FK&lt;br&gt;target_account_id FK&lt;br&gt;target_party_token_id FK&lt;br&gt;requested_fields&lt;br&gt;reason&lt;br&gt;status&lt;br&gt;required_approvals" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1420" y="80" width="280" height="240" as="geometry" />
+        </mxCell>
+
+        <mxCell id="identity_token" value="&lt;b&gt;IDENTITY_TOKEN&lt;/b&gt;&lt;br&gt;party_token_id PK&lt;br&gt;context_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;token_type&lt;br&gt;token_digest&lt;br&gt;matching_basis&lt;br&gt;confidence_score&lt;br&gt;source_record_hash&lt;br&gt;valid_from / valid_to" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="30" y="360" width="270" height="235" as="geometry" />
+        </mxCell>
+        <mxCell id="bank_account" value="&lt;b&gt;BANK_ACCOUNT&lt;/b&gt;&lt;br&gt;account_id PK&lt;br&gt;context_id FK&lt;br&gt;institution_id FK&lt;br&gt;account_token_digest&lt;br&gt;account_type&lt;br&gt;status&lt;br&gt;opened_at / closed_at&lt;br&gt;source_record_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eaf2f8;strokeColor=#2f5597;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="350" y="360" width="270" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="device_token" value="&lt;b&gt;DEVICE_TOKEN&lt;/b&gt;&lt;br&gt;device_id PK&lt;br&gt;context_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;device_token_digest&lt;br&gt;device_type&lt;br&gt;os_family&lt;br&gt;manufacturer&lt;br&gt;confidence_score" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="670" y="360" width="250" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="network_token" value="&lt;b&gt;NETWORK_TOKEN&lt;/b&gt;&lt;br&gt;network_id PK&lt;br&gt;context_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;network_token_digest&lt;br&gt;network_type&lt;br&gt;country_code&lt;br&gt;isp_name&lt;br&gt;confidence_score" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="970" y="360" width="250" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="payment_transaction" value="&lt;b&gt;PAYMENT_TRANSACTION&lt;/b&gt;&lt;br&gt;transaction_id PK&lt;br&gt;context_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;sender_account_id FK&lt;br&gt;receiver_account_id FK&lt;br&gt;parent_transaction_id FK&lt;br&gt;amount / currency_code&lt;br&gt;payment_rail / transaction_type&lt;br&gt;transaction_status&lt;br&gt;occurred_at / observed_at&lt;br&gt;source_record_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#548235;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1270" y="360" width="330" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="case_alert" value="&lt;b&gt;CASE_ALERT&lt;/b&gt;&lt;br&gt;case_id PK/FK&lt;br&gt;alert_id PK/FK&lt;br&gt;added_by FK&lt;br&gt;added_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1650" y="360" width="210" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="account_party" value="&lt;b&gt;ACCOUNT_PARTY&lt;/b&gt;&lt;br&gt;account_id PK/FK&lt;br&gt;party_token_id PK/FK&lt;br&gt;relationship_type&lt;br&gt;confidence_score&lt;br&gt;valid_from / valid_to" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="30" y="680" width="260" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="account_observation" value="&lt;b&gt;ACCOUNT_OBSERVATION&lt;/b&gt;&lt;br&gt;observation_id PK&lt;br&gt;account_id FK&lt;br&gt;device_id FK&lt;br&gt;network_id FK&lt;br&gt;transaction_id FK&lt;br&gt;observed_at&lt;br&gt;confidence_score&lt;br&gt;source_record_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#bf9000;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="340" y="680" width="280" height="205" as="geometry" />
+        </mxCell>
+        <mxCell id="transaction_signal" value="&lt;b&gt;TRANSACTION_SIGNAL&lt;/b&gt;&lt;br&gt;signal_id PK&lt;br&gt;transaction_id FK&lt;br&gt;signal_type&lt;br&gt;signal_score&lt;br&gt;explanation&lt;br&gt;generated_by&lt;br&gt;generated_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#548235;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="670" y="680" width="250" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="fraud_alert" value="&lt;b&gt;FRAUD_ALERT&lt;/b&gt;&lt;br&gt;alert_id PK&lt;br&gt;source_institution_id FK&lt;br&gt;alert_type&lt;br&gt;severity&lt;br&gt;alert_status&lt;br&gt;description&lt;br&gt;created_at / resolved_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fce4d6;strokeColor=#c65911;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="970" y="680" width="250" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="case_transaction" value="&lt;b&gt;CASE_TRANSACTION&lt;/b&gt;&lt;br&gt;case_id PK/FK&lt;br&gt;transaction_id PK/FK&lt;br&gt;relevance&lt;br&gt;added_by FK&lt;br&gt;added_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1270" y="700" width="250" height="165" as="geometry" />
+        </mxCell>
+        <mxCell id="fraud_complaint" value="&lt;b&gt;FRAUD_COMPLAINT&lt;/b&gt;&lt;br&gt;complaint_id PK&lt;br&gt;case_id FK&lt;br&gt;complainant_token_id FK&lt;br&gt;transaction_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;channel&lt;br&gt;reported_at&lt;br&gt;summary&lt;br&gt;status" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fce4d6;strokeColor=#c65911;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1580" y="680" width="270" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="case_note" value="&lt;b&gt;CASE_NOTE&lt;/b&gt;&lt;br&gt;note_id PK&lt;br&gt;case_id FK&lt;br&gt;author_investigator_id FK&lt;br&gt;note_body&lt;br&gt;created_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="30" y="920" width="260" height="155" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fund_path" value="&lt;b&gt;FUND_PATH&lt;/b&gt;&lt;br&gt;path_id PK&lt;br&gt;case_id FK&lt;br&gt;start_account_id FK&lt;br&gt;end_account_id FK&lt;br&gt;path_status&lt;br&gt;hop_count&lt;br&gt;risk_score&lt;br&gt;certificate_hash&lt;br&gt;generated_by / generated_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#548235;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="150" y="1110" width="280" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="path_hop" value="&lt;b&gt;PATH_HOP&lt;/b&gt;&lt;br&gt;path_id PK/FK&lt;br&gt;hop_no PK&lt;br&gt;transaction_id FK&lt;br&gt;from_account_id FK&lt;br&gt;to_account_id FK&lt;br&gt;amount_bucket&lt;br&gt;temporal_gap_seconds&lt;br&gt;hop_risk_score&lt;br&gt;provenance_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#548235;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="480" y="1110" width="290" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="evidence_record" value="&lt;b&gt;EVIDENCE_RECORD&lt;/b&gt;&lt;br&gt;evidence_id PK&lt;br&gt;case_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;transaction_id / alert_id / path_id&lt;br&gt;evidence_type&lt;br&gt;source_record_hash&lt;br&gt;content_commitment&lt;br&gt;integrity_status&lt;br&gt;captured_by / captured_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7e6e6;strokeColor=#7f7f7f;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="820" y="1110" width="300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_event" value="&lt;b&gt;AUDIT_EVENT&lt;/b&gt;&lt;br&gt;audit_event_id PK&lt;br&gt;case_id FK&lt;br&gt;actor_investigator_id FK&lt;br&gt;event_type&lt;br&gt;target_type / target_id&lt;br&gt;event_payload&lt;br&gt;occurred_at&lt;br&gt;previous_event_hash&lt;br&gt;event_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7e6e6;strokeColor=#7f7f7f;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1170" y="1110" width="290" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="reveal_approval" value="&lt;b&gt;REVEAL_APPROVAL&lt;/b&gt;&lt;br&gt;reveal_request_id PK/FK&lt;br&gt;approver_id PK/FK&lt;br&gt;approver_role&lt;br&gt;decision&lt;br&gt;decision_reason&lt;br&gt;decided_at&lt;br&gt;approval_signature" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1510" y="1110" width="260" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="reveal_receipt" value="&lt;b&gt;REVEAL_RECEIPT&lt;/b&gt;&lt;br&gt;receipt_id PK&lt;br&gt;reveal_request_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;local_disclosure_reference&lt;br&gt;disclosed_field_hash&lt;br&gt;source_signature&lt;br&gt;disclosed_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f3eaf8;strokeColor=#7030a0;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1810" y="1110" width="270" height="195" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;Blue: source and actor data&lt;br&gt;Yellow: scoped protected identifiers&lt;br&gt;Green: transaction graph and path analysis&lt;br&gt;Purple: case governance and disclosure&lt;br&gt;Gray: evidence and audit integrity" vertex="1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=12;fontColor=#404040;">
+          <mxGeometry x="30" y="1370" width="700" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="employs" edge="1" parent="1" source="institution" target="investigator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="opens" edge="1" parent="1" source="investigator" target="fraud_case" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="controls" edge="1" parent="1" source="fraud_case" target="case_access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="uses" edge="1" parent="1" source="investigator" target="case_access" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="creates epochs" edge="1" parent="1" source="fraud_case" target="token_context" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="scopes" edge="1" parent="1" source="token_context" target="identity_token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="scopes" edge="1" parent="1" source="token_context" target="bank_account" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="scopes" edge="1" parent="1" source="token_context" target="device_token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="scopes" edge="1" parent="1" source="token_context" target="network_token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="owns" edge="1" parent="1" source="institution" target="bank_account" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="is linked through" edge="1" parent="1" source="identity_token" target="account_party" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="is linked through" edge="1" parent="1" source="bank_account" target="account_party" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="sends" edge="1" parent="1" source="bank_account" target="payment_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="receives" edge="1" parent="1" source="bank_account" target="payment_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="observed with" edge="1" parent="1" source="bank_account" target="account_observation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="observed with" edge="1" parent="1" source="device_token" target="account_observation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" value="observed with" edge="1" parent="1" source="network_token" target="account_observation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="has signals" edge="1" parent="1" source="payment_transaction" target="transaction_signal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="belongs to" edge="1" parent="1" source="payment_transaction" target="case_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="raises" edge="1" parent="1" source="payment_transaction" target="fraud_alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="contains" edge="1" parent="1" source="fraud_case" target="case_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="contains" edge="1" parent="1" source="fraud_case" target="case_alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="generates" edge="1" parent="1" source="fraud_case" target="fund_path" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="has hops" edge="1" parent="1" source="fund_path" target="path_hop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="uses" edge="1" parent="1" source="payment_transaction" target="path_hop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="supports" edge="1" parent="1" source="fraud_case" target="evidence_record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" value="records" edge="1" parent="1" source="fraud_case" target="audit_event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="reports" edge="1" parent="1" source="fraud_case" target="fraud_complaint" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="requests" edge="1" parent="1" source="fraud_case" target="reveal_request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" value="requires" edge="1" parent="1" source="reveal_request" target="reveal_approval" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="returns receipt" edge="1" parent="1" source="reveal_request" target="reveal_receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERone;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" value="approves" edge="1" parent="1" source="investigator" target="reveal_approval" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" value="documents" edge="1" parent="1" source="fraud_case" target="case_note" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" value="authors" edge="1" parent="1" source="investigator" target="case_note" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

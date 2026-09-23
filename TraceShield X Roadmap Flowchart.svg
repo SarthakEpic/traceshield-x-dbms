@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">TraceShield X Project Roadmap</title>
+  <desc id="desc">A simple flowchart dividing the TraceShield X project between two people and showing integration, testing, and submission.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #475569; }
+      .section { font: 700 20px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .box-title { font: 700 18px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .box-text { font: 400 16px Arial, Helvetica, sans-serif; fill: #334155; }
+      .small { font: 400 14px Arial, Helvetica, sans-serif; fill: #64748b; }
+      .shared { fill: #e0f2fe; stroke: #0284c7; }
+      .person-one { fill: #eff6ff; stroke: #2563eb; }
+      .person-two { fill: #f5f3ff; stroke: #7c3aed; }
+      .integration { fill: #ecfeff; stroke: #0891b2; }
+      .final { fill: #fff7ed; stroke: #ea580c; }
+      .step { stroke-width: 2; rx: 10; }
+      .line { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .branch { fill: none; stroke: #334155; stroke-width: 3; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="#ffffff" />
+  <text x="800" y="48" text-anchor="middle" class="title">TraceShield X Project Roadmap</text>
+  <text x="800" y="78" text-anchor="middle" class="subtitle">Simple building plan for two people</text>
+
+  <!-- Shared setup -->
+  <rect x="390" y="105" width="820" height="105" rx="14" class="shared" stroke-width="3" />
+  <text x="800" y="140" text-anchor="middle" class="box-title">1. SHARED SETUP</text>
+  <text x="800" y="170" text-anchor="middle" class="box-text">Agree on the ER diagram, table names, API contract, roles, PostgreSQL stack,</text>
+  <text x="800" y="193" text-anchor="middle" class="box-text">folder structure, and synthetic test scenario.</text>
+
+  <!-- Branch -->
+  <path d="M800 210 L800 240" class="line" />
+  <path d="M800 240 L400 240 L400 270" class="branch" />
+  <path d="M800 240 L1200 240 L1200 270" class="branch" />
+  <path d="M400 270 L400 295" class="line" />
+  <path d="M1200 270 L1200 295" class="line" />
+
+  <!-- Person 1 lane -->
+  <rect x="55" y="295" width="690" height="555" rx="14" fill="#f8fbff" stroke="#2563eb" stroke-width="3" />
+  <rect x="55" y="295" width="690" height="58" rx="14" fill="#2563eb" />
+  <rect x="55" y="335" width="690" height="18" fill="#2563eb" />
+  <text x="400" y="331" text-anchor="middle" class="section">2A. PERSON 1 - DATA AND PRIVACY BACKEND</text>
+
+  <rect x="90" y="380" width="620" height="70" class="step person-one" />
+  <text x="115" y="410" class="box-title">1. Build core tables</text>
+  <text x="115" y="433" class="box-text">Institutions, accounts, transactions, devices, networks.</text>
+  <path d="M400 450 L400 470" class="line" />
+
+  <rect x="90" y="480" width="620" height="70" class="step person-one" />
+  <text x="115" y="510" class="box-title">2. Add case-scoped tokenisation</text>
+  <text x="115" y="533" class="box-text">Protect names, phones, emails, accounts, devices, and IPs.</text>
+  <path d="M400 550 L400 570" class="line" />
+
+  <rect x="90" y="580" width="620" height="70" class="step person-one" />
+  <text x="115" y="610" class="box-title">3. Build bank data ingestion APIs</text>
+  <text x="115" y="633" class="box-text">Validate and import protected account and transaction data.</text>
+  <path d="M400 650 L400 670" class="line" />
+
+  <rect x="90" y="680" width="620" height="70" class="step person-one" />
+  <text x="115" y="710" class="box-title">4. Add authentication and validation</text>
+  <text x="115" y="733" class="box-text">Institution access, duplicate checks, constraints, and indexes.</text>
+  <path d="M400 750 L400 770" class="line" />
+
+  <rect x="90" y="780" width="620" height="50" class="step person-one" />
+  <text x="400" y="811" text-anchor="middle" class="box-title">5. Create synthetic bank data</text>
+
+  <!-- Person 2 lane -->
+  <rect x="855" y="295" width="690" height="555" rx="14" fill="#fcfaff" stroke="#7c3aed" stroke-width="3" />
+  <rect x="855" y="295" width="690" height="58" rx="14" fill="#7c3aed" />
+  <rect x="855" y="335" width="690" height="18" fill="#7c3aed" />
+  <text x="1200" y="331" text-anchor="middle" class="section">2B. PERSON 2 - INVESTIGATION AND FRONTEND</text>
+
+  <rect x="890" y="380" width="620" height="70" class="step person-two" />
+  <text x="915" y="410" class="box-title">1. Build case and alert tables</text>
+  <text x="915" y="433" class="box-text">Cases, alerts, complaints, investigators, and access control.</text>
+  <path d="M1200 450 L1200 470" class="line" />
+
+  <rect x="890" y="480" width="620" height="70" class="step person-two" />
+  <text x="915" y="510" class="box-title">2. Build tracing and risk logic</text>
+  <text x="915" y="533" class="box-text">Recursive fund paths, risk signals, evidence, and explanations.</text>
+  <path d="M1200 550 L1200 570" class="line" />
+
+  <rect x="890" y="580" width="620" height="70" class="step person-two" />
+  <text x="915" y="610" class="box-title">3. Build investigation backend APIs</text>
+  <text x="915" y="633" class="box-text">Cases, traces, alerts, evidence, reveal requests, and audits.</text>
+  <path d="M1200 650 L1200 670" class="line" />
+
+  <rect x="890" y="680" width="620" height="70" class="step person-two" />
+  <text x="915" y="710" class="box-title">4. Build the frontend dashboard</text>
+  <text x="915" y="733" class="box-text">Login, cases, transaction search, and fund-flow visualisation.</text>
+  <path d="M1200 750 L1200 770" class="line" />
+
+  <rect x="890" y="780" width="620" height="50" class="step person-two" />
+  <text x="1200" y="811" text-anchor="middle" class="box-title">5. Add reveal approval and audit screens</text>
+
+  <!-- Merge -->
+  <path d="M400 850 L400 875 L800 875 L800 900" class="line" />
+  <path d="M1200 850 L1200 875 L800 875 L800 900" class="line" />
+
+  <rect x="250" y="900" width="1100" height="105" rx="14" class="integration" stroke-width="3" />
+  <text x="800" y="935" text-anchor="middle" class="box-title">3. INTEGRATION AND TESTING</text>
+  <text x="800" y="965" text-anchor="middle" class="box-text">Connect protected bank data to the investigation APIs. Test the three-bank fraud path,</text>
+  <text x="800" y="988" text-anchor="middle" class="box-text">privacy, access control, reveal approval, duplicate prevention, and audit tampering.</text>
+
+  <path d="M800 1005 L800 1020" class="line" />
+  <rect x="350" y="1020" width="900" height="50" rx="12" class="final" stroke-width="3" />
+  <text x="800" y="1042" text-anchor="middle" class="box-title">4. FINAL DEMO AND SUBMISSION</text>
+  <text x="800" y="1062" text-anchor="middle" class="small">Working demo + report + ER diagram + test results + presentation</text>
+</svg>

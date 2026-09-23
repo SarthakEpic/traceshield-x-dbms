@@ -1,0 +1,4 @@
+.pg-*/
+investigation-app/node_modules/
+investigation-app/.env
+npm-debug.log*
