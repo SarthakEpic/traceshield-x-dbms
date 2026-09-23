@@ -1,0 +1,17 @@
+{
+  "name": "traceshield-investigation-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check repository.js && node --check investigation-engine.js && node --check mock-data.js && node --check public/app.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "gsap": "^3.15.0",
+    "pg": "^8.16.3"
+  }
+}
