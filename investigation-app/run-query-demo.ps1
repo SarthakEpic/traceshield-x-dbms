@@ -16,10 +16,14 @@ param(
     [string]$PsqlPath = 'psql',
 
     [Parameter(Mandatory = $false)]
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'query-output')
+    [string]$OutputDirectory = $null
 )
 
 $ErrorActionPreference = 'Stop'
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    $OutputDirectory = Join-Path $scriptRoot 'query-output'
+}
 
 if ([string]::IsNullOrWhiteSpace($DatabaseUrl)) {
     throw @'
@@ -30,7 +34,7 @@ or pass -DatabaseUrl directly to this script.
 '@
 }
 
-$queryFile = Join-Path $PSScriptRoot 'investigation_queries.sql'
+$queryFile = Join-Path $scriptRoot 'investigation_queries.sql'
 if (-not (Test-Path -LiteralPath $queryFile)) {
     throw "Query file was not found: $queryFile"
 }
