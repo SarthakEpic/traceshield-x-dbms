@@ -24,6 +24,7 @@ The `investigation-app` folder contains the complete investigator-facing vertica
 - Case notes, lifecycle updates, timelines, audit verification, and privacy-safe report export.
 - Responsive investigator console with accessible modal interactions and reduced-motion support.
 - Unit and HTTP integration tests.
+- Executable PostgreSQL query pack with saved evidence transcripts.
 
 ## Quick start: zero-setup demo
 
@@ -65,6 +66,19 @@ PORT=4170
 ```
 
 The repository sets the investigator and institution context inside every database transaction. This is required by the schema's case and institution visibility rules.
+
+### Show the executed DBMS queries
+
+After applying the schema and seed, the complete SQL demonstration can be run against the real database. It prints each query, result table, execution timing and query plan, then saves the transcript for your viva:
+
+```powershell
+cd "investigation-app"
+$env:PGPASSWORD = "your_password"
+$env:TRACESHIELD_DATABASE_URL = "postgresql://postgres@localhost:5432/traceshield"
+.\run-query-demo.ps1
+```
+
+The generated file is placed in `investigation-app\query-output\executed-queries-<timestamp>.txt`. Read [TraceShield_X_Query_Execution_Guide.md](TraceShield_X_Query_Execution_Guide.md) for the exact setup, query-by-query DBMS concepts and troubleshooting.
 
 ## Collaboration boundary
 

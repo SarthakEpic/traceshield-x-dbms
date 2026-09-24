@@ -16,7 +16,8 @@ This folder is the complete Person 2 vertical slice for the TraceShield X DBMS p
 - case lifecycle controls, append-only investigator notes, and a case timeline;
 - privacy-safe JSON investigation report export;
 - investigator dashboard frontend;
-- PostgreSQL query/report pack in `investigation_queries.sql`.
+- PostgreSQL query/report pack in `investigation_queries.sql`;
+- an executable query-transcript runner in `run-query-demo.ps1` for DBMS evaluation.
 
 The frontend is plain HTML/CSS/JavaScript served by Express. This keeps the DBMS submission easy to run and makes every API/database boundary visible. The production-shaped repository uses PostgreSQL through `pg`; mock mode has the same response contract and is the default for a zero-setup demo.
 
@@ -52,6 +53,45 @@ The PostgreSQL repository sets the request context inside every database transac
 The schema also enforces the security invariants at the database boundary: evidence, audit events, and case notes reject updates/deletes; reveal approvals verify the active investigator's real role; reveal field arrays cannot be empty; and case notes can only be inserted by the current scoped investigator. The API adds a second layer of validation for better error messages and minimum-disclosure planning.
 
 For local seeding, the minimum order is: institution → investigator → fraud case → case access → token context/accounts → transactions → case transactions. Person 1's adapter should populate those source tables; Person 2 consumes the masked records.
+
+## Show executed SQL queries
+
+The project includes more than a SQL file listing. The query pack is executable and produces a timestamped transcript containing the SQL statements, result tables, row counts, timings, recursive trace output, masked values, and the final query plan.
+
+First apply the root schema and demo seed to PostgreSQL. Then open PowerShell in this folder and set the real database connection string:
+
+```powershell
+cd "D:\Projects\DBMS Project\investigation-app"
+$env:PGPASSWORD = "your_password"
+$env:TRACESHIELD_DATABASE_URL = "postgresql://postgres@localhost:5432/traceshield"
+.\run-query-demo.ps1
+```
+
+The default demonstration values match `TraceShield_X_demo_seed.sql`:
+
+```text
+investigator_id = 1
+institution_id = 101
+case_id         = 11111111-1111-4111-8111-111111111111
+```
+
+To use another seed or database, pass the values explicitly:
+
+```powershell
+.\run-query-demo.ps1 `
+  -DatabaseUrl "postgresql://postgres@localhost:5432/traceshield" `
+  -InvestigatorId 1 `
+  -InstitutionId 101 `
+  -CaseId "11111111-1111-4111-8111-111111111111"
+```
+
+The transcript is written to `query-output\executed-queries-<timestamp>.txt` and is ignored by Git so database contents and credentials are never committed. For a viva, open that file and show Q02 (aggregation), Q03/Q04 (joins and reporting), Q06 (bounded recursive function), Q07 (dual approval), Q11 (audit verification), and Q15 (EXPLAIN query plan).
+
+If `psql` is not on PATH, pass its full Windows path:
+
+```powershell
+.\run-query-demo.ps1 -PsqlPath "C:\Program Files\PostgreSQL\18\bin\psql.exe"
+```
 
 ## Main API routes
 

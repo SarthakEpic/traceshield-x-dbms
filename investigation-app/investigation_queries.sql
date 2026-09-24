@@ -1,17 +1,43 @@
--- TraceShield X investigation query pack
--- Person 2 owns these read/report queries and the API methods that expose them.
--- Replace :investigator_id, :institution_id and :case_id in a SQL client, or use
--- the positional parameters shown in the comments when calling from Node pg.
+-- TraceShield X executed investigation query pack
+--
+-- This file is intentionally runnable with PostgreSQL's psql client. The
+-- PowerShell runner passes investigator_id, institution_id and case_id as
+-- psql variables, prints every statement, shows timings, and captures the
+-- complete transcript for a DBMS viva/demo.
+--
+-- Example:
+--   psql -X -v ON_ERROR_STOP=1 \
+--     -v investigator_id=1 \
+--     -v institution_id=101 \
+--     -v case_id='11111111-1111-4111-8111-111111111111' \
+--     -f investigation_queries.sql
+
+\set ON_ERROR_STOP on
+\set ECHO queries
+\set VERBOSITY default
+\pset pager off
+\pset null '[NULL]'
+\timing on
 
 SET search_path = traceshield, public;
 
--- 1. Request context: every API transaction must set both values before a query.
+-- Keep the RLS request context alive for every statement in this transcript.
+-- The final ROLLBACK makes this demonstration read-only, even if it is run
+-- against the shared development database.
 BEGIN;
-SELECT set_config('traceshield.investigator_id', :'investigator_id', true);
-SELECT set_config('traceshield.institution_id', :'institution_id', true);
-COMMIT;
 
--- 2. Investigator dashboard counters.
+\echo ''
+\echo '============================================================'
+\echo 'Q01 | Request-scoped security context'
+\echo '============================================================'
+SELECT
+    set_config('traceshield.investigator_id', :'investigator_id', true) AS investigator_context,
+    set_config('traceshield.institution_id', :'institution_id', true) AS institution_context;
+
+\echo ''
+\echo '============================================================'
+\echo 'Q02 | Investigator dashboard counters'
+\echo '============================================================'
 SELECT
     count(*) FILTER (WHERE status IN ('OPEN', 'REOPENED')) AS open_cases,
     count(*) FILTER (WHERE severity IN ('HIGH', 'CRITICAL') AND status IN ('OPEN', 'REOPENED')) AS priority_cases,
@@ -20,15 +46,25 @@ SELECT
     (SELECT count(*) FROM evidence_record WHERE integrity_status = 'CONFLICTING') AS conflicting_evidence
 FROM fraud_case;
 
--- 3. Case list for the left-hand investigation queue.
+\echo ''
+\echo '============================================================'
+\echo 'Q03 | Case queue with joined investigation summary'
+\echo '============================================================'
 SELECT *
 FROM v_case_summary
 WHERE status IN ('OPEN', 'REOPENED', 'PAUSED')
-ORDER BY CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END,
+ORDER BY CASE severity
+             WHEN 'CRITICAL' THEN 1
+             WHEN 'HIGH' THEN 2
+             WHEN 'MEDIUM' THEN 3
+             ELSE 4
+         END,
          opened_at DESC;
 
--- 4. One case's explainable risk signals.
--- Node pg form: WHERE ct.case_id = $1::uuid
+\echo ''
+\echo '============================================================'
+\echo 'Q04 | Explainable transaction risk signals'
+\echo '============================================================'
 SELECT
     ts.signal_id,
     ts.signal_type,
@@ -41,7 +77,10 @@ JOIN case_transaction ct ON ct.transaction_id = ts.transaction_id
 WHERE ct.case_id = :'case_id'::uuid
 ORDER BY ts.signal_score DESC, ts.generated_at DESC;
 
--- 5. Masked fund-flow paths. No raw account number or identity field is selected.
+\echo ''
+\echo '============================================================'
+\echo 'Q05 | Masked fund-flow path (privacy-safe view)'
+\echo '============================================================'
 SELECT
     path_id,
     hop_no,
@@ -55,8 +94,10 @@ FROM v_masked_path_hops
 WHERE case_id = :'case_id'::uuid
 ORDER BY path_id, hop_no;
 
--- 6. Generate a bounded path from the first case transaction's sender.
--- The API first chooses a seed account, then calls this function with a max hop count.
+\echo ''
+\echo '============================================================'
+\echo 'Q06 | Bounded recursive fund-tracing function'
+\echo '============================================================'
 WITH seed AS (
     SELECT t.sender_account_id
     FROM payment_transaction t
@@ -69,7 +110,10 @@ WITH seed AS (
 SELECT *
 FROM seed, LATERAL trace_fund_path(:'case_id'::uuid, seed.sender_account_id, 5);
 
--- 7. Approval queue with calculated dual-control state.
+\echo ''
+\echo '============================================================'
+\echo 'Q07 | Dual-control reveal approval queue'
+\echo '============================================================'
 SELECT
     reveal_request_id,
     case_id,
@@ -82,7 +126,10 @@ FROM v_reveal_approval_status
 WHERE calculated_state IN ('WAITING', 'READY_FOR_SOURCE_DISCLOSURE')
 ORDER BY reveal_request_id;
 
--- 8. Evidence register and integrity conflicts for one case.
+\echo ''
+\echo '============================================================'
+\echo 'Q08 | Evidence register and integrity status'
+\echo '============================================================'
 SELECT
     er.evidence_id,
     er.evidence_type,
@@ -96,7 +143,10 @@ LEFT JOIN institution i ON i.institution_id = er.source_institution_id
 WHERE er.case_id = :'case_id'::uuid
 ORDER BY er.captured_at DESC;
 
--- 9. Complaint register. The complainant remains a token; the narrative is purpose-limited.
+\echo ''
+\echo '============================================================'
+\echo 'Q09 | Purpose-limited complaint register'
+\echo '============================================================'
 SELECT
     fc.complaint_id,
     fc.complaint_reference_token,
@@ -109,7 +159,10 @@ FROM fraud_complaint fc
 WHERE fc.case_id = :'case_id'::uuid
 ORDER BY fc.reported_at DESC;
 
--- 10. Audit trail for a case. The UI displays hashes; it never exposes raw source data.
+\echo ''
+\echo '============================================================'
+\echo 'Q10 | Hash-linked audit trail'
+\echo '============================================================'
 SELECT
     ae.audit_event_id,
     ae.event_type,
@@ -124,10 +177,16 @@ LEFT JOIN investigator inv ON inv.investigator_id = ae.actor_investigator_id
 WHERE ae.case_id = :'case_id'::uuid
 ORDER BY ae.audit_event_id;
 
--- 11. One-call audit verification used by GET /api/audit/verify.
+\echo ''
+\echo '============================================================'
+\echo 'Q11 | Audit-chain verification'
+\echo '============================================================'
 SELECT verify_case_audit_chain(:'case_id'::uuid) AS audit_chain_valid;
 
--- 12. Cross-institution path summary for an investigator report.
+\echo ''
+\echo '============================================================'
+\echo 'Q12 | Cross-institution path summary'
+\echo '============================================================'
 SELECT
     fp.path_id,
     fp.risk_score,
@@ -141,18 +200,26 @@ WHERE fp.case_id = :'case_id'::uuid
 GROUP BY fp.path_id, fp.risk_score
 ORDER BY fp.risk_score DESC;
 
--- 13. Expired case/reveal housekeeping report. The application can schedule this later.
+\echo ''
+\echo '============================================================'
+\echo 'Q13 | Expired case and reveal housekeeping report'
+\echo '============================================================'
 SELECT case_id, case_reference, expires_at
 FROM fraud_case
-WHERE status IN ('OPEN', 'REOPENED') AND expires_at <= now()
+WHERE status IN ('OPEN', 'REOPENED')
+  AND expires_at <= now()
 ORDER BY expires_at;
 
 SELECT reveal_request_id, case_id, expires_at
 FROM reveal_request
-WHERE status = 'PENDING' AND expires_at <= now()
+WHERE status = 'PENDING'
+  AND expires_at <= now()
 ORDER BY expires_at;
 
--- 14. Append-only investigator notes for the case timeline.
+\echo ''
+\echo '============================================================'
+\echo 'Q14 | Append-only investigator notes'
+\echo '============================================================'
 SELECT
     cn.note_id,
     cn.case_id,
@@ -163,3 +230,19 @@ FROM case_note cn
 JOIN investigator inv ON inv.investigator_id = cn.author_investigator_id
 WHERE cn.case_id = :'case_id'::uuid
 ORDER BY cn.created_at DESC;
+
+\echo ''
+\echo '============================================================'
+\echo 'Q15 | Query-plan evidence for indexed audit lookup'
+\echo '============================================================'
+EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
+SELECT audit_event_id, event_type, occurred_at
+FROM audit_event
+WHERE case_id = :'case_id'::uuid
+ORDER BY audit_event_id;
+
+\echo ''
+\echo '============================================================'
+\echo 'END | Read-only demonstration transaction rolled back'
+\echo '============================================================'
+ROLLBACK;

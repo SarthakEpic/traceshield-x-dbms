@@ -1,4 +1,5 @@
 .pg-*/
 investigation-app/node_modules/
 investigation-app/.env
+investigation-app/query-output/
 npm-debug.log*
