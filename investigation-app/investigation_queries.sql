@@ -243,6 +243,69 @@ ORDER BY audit_event_id;
 
 \echo ''
 \echo '============================================================'
+\echo 'Q16 | Source-ingestion idempotency and provenance'
+\echo '============================================================'
+SELECT
+    sib.batch_id,
+    sib.context_id,
+    i.institution_code AS source_institution,
+    sib.batch_reference,
+    sib.source_system,
+    sib.status,
+    sib.record_count,
+    sib.payload_hash,
+    sib.created_at,
+    sib.completed_at,
+    count(sir.ingestion_record_id) AS provenance_records
+FROM source_ingestion_batch sib
+JOIN institution i ON i.institution_id = sib.source_institution_id
+LEFT JOIN source_ingestion_record sir ON sir.batch_id = sib.batch_id
+WHERE sib.case_id = :'case_id'::uuid
+GROUP BY sib.batch_id, sib.context_id, i.institution_code, sib.batch_reference, sib.source_system,
+         sib.status, sib.record_count, sib.payload_hash, sib.created_at, sib.completed_at
+ORDER BY sib.created_at DESC;
+
+\echo ''
+\echo '============================================================'
+\echo 'Q17 | Token-context epoch lifecycle'
+\echo '============================================================'
+SELECT
+    context_id,
+    case_id,
+    epoch_no,
+    token_version,
+    purpose_code,
+    status,
+    created_at,
+    expires_at
+FROM token_context
+WHERE case_id = :'case_id'::uuid
+ORDER BY epoch_no DESC, token_version DESC;
+
+\echo ''
+\echo '============================================================'
+\echo 'Q18 | Authentication posture without secret disclosure'
+\echo '============================================================'
+SELECT
+    inv.investigator_id,
+    inv.display_name,
+    inv.role_code,
+    inv.status,
+    (credential.investigator_id IS NOT NULL) AS credential_provisioned,
+    credential.failed_attempts,
+    credential.locked_until,
+    credential.last_login_at,
+    count(auth.session_id) FILTER (WHERE auth.revoked_at IS NULL AND auth.expires_at > now()) AS active_sessions
+FROM investigator inv
+LEFT JOIN investigator_credential credential ON credential.investigator_id = inv.investigator_id
+LEFT JOIN auth_session auth ON auth.investigator_id = inv.investigator_id
+WHERE inv.investigator_id = :'investigator_id'::bigint
+GROUP BY inv.investigator_id, inv.display_name, inv.role_code, inv.status,
+         credential.investigator_id, credential.failed_attempts, credential.locked_until,
+         credential.last_login_at;
+
+\echo ''
+\echo '============================================================'
 \echo 'END | Read-only demonstration transaction rolled back'
 \echo '============================================================'
 ROLLBACK;

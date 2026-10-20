@@ -2,4 +2,7 @@
 investigation-app/node_modules/
 investigation-app/.env
 investigation-app/query-output/
+Pass.txt
 npm-debug.log*
+postgres-audit.log
+*.log

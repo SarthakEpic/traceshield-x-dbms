@@ -29,7 +29,7 @@ if ([string]::IsNullOrWhiteSpace($DatabaseUrl)) {
     throw @'
 DatabaseUrl is required. Set it once with:
   $env:PGPASSWORD = "your_password"
-  $env:TRACESHIELD_DATABASE_URL = "postgresql://postgres@localhost:5432/traceshield"
+  $env:TRACESHIELD_DATABASE_URL = "postgresql://traceshield_app@localhost:5432/traceshield"
 or pass -DatabaseUrl directly to this script.
 '@
 }

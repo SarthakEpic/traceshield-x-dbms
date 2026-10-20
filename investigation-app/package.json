@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "check": "node --check server.js && node --check repository.js && node --check investigation-engine.js && node --check mock-data.js && node --check public/app.js",
+    "bootstrap:credential": "node scripts/bootstrap-credential.js",
+    "check": "node --check server.js && node --check repository.js && node --check investigation-engine.js && node --check ingestion-engine.js && node --check auth.js && node --check runtime-config.js && node --check security.js && node --check adapter-security.js && node --check scripts/bootstrap-credential.js && node --check scripts/postgres-integration-check.js && node --check scripts/source-adapter-demo.js && node --check scripts/benchmark.js && node --check mock-data.js && node --check public/app.js",
+    "adapter:demo": "node scripts/source-adapter-demo.js",
+    "benchmark": "node scripts/benchmark.js",
     "test": "node --test"
   },
   "dependencies": {

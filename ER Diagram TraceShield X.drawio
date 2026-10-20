@@ -76,7 +76,7 @@
         <mxCell id="path_hop" value="&lt;b&gt;PATH_HOP&lt;/b&gt;&lt;br&gt;path_id PK/FK&lt;br&gt;hop_no PK&lt;br&gt;transaction_id FK&lt;br&gt;from_account_id FK&lt;br&gt;to_account_id FK&lt;br&gt;amount_bucket&lt;br&gt;temporal_gap_seconds&lt;br&gt;hop_risk_score&lt;br&gt;provenance_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#548235;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
           <mxGeometry x="480" y="1110" width="290" height="220" as="geometry" />
         </mxCell>
-        <mxCell id="evidence_record" value="&lt;b&gt;EVIDENCE_RECORD&lt;/b&gt;&lt;br&gt;evidence_id PK&lt;br&gt;case_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;transaction_id / alert_id / path_id&lt;br&gt;evidence_type&lt;br&gt;source_record_hash&lt;br&gt;content_commitment&lt;br&gt;integrity_status&lt;br&gt;captured_by / captured_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7e6e6;strokeColor=#7f7f7f;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+        <mxCell id="evidence_record" value="&lt;b&gt;EVIDENCE_RECORD&lt;/b&gt;&lt;br&gt;evidence_id PK&lt;br&gt;case_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;one target: transaction / alert / path / account / device / network&lt;br&gt;evidence_type&lt;br&gt;source_record_hash&lt;br&gt;content_commitment&lt;br&gt;integrity_status&lt;br&gt;captured_by / captured_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7e6e6;strokeColor=#7f7f7f;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
           <mxGeometry x="820" y="1110" width="300" height="220" as="geometry" />
         </mxCell>
         <mxCell id="audit_event" value="&lt;b&gt;AUDIT_EVENT&lt;/b&gt;&lt;br&gt;audit_event_id PK&lt;br&gt;case_id FK&lt;br&gt;actor_investigator_id FK&lt;br&gt;event_type&lt;br&gt;target_type / target_id&lt;br&gt;event_payload&lt;br&gt;occurred_at&lt;br&gt;previous_event_hash&lt;br&gt;event_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7e6e6;strokeColor=#7f7f7f;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
@@ -89,8 +89,21 @@
           <mxGeometry x="1810" y="1110" width="270" height="195" as="geometry" />
         </mxCell>
 
-        <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;Blue: source and actor data&lt;br&gt;Yellow: scoped protected identifiers&lt;br&gt;Green: transaction graph and path analysis&lt;br&gt;Purple: case governance and disclosure&lt;br&gt;Gray: evidence and audit integrity" vertex="1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=12;fontColor=#404040;">
-          <mxGeometry x="30" y="1370" width="700" height="60" as="geometry" />
+        <mxCell id="investigator_credential" value="&lt;b&gt;INVESTIGATOR_CREDENTIAL&lt;/b&gt;&lt;br&gt;investigator_id PK/FK&lt;br&gt;login_name UQ&lt;br&gt;password_hash&lt;br&gt;failed_attempts&lt;br&gt;locked_until&lt;br&gt;last_login_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae3f3;strokeColor=#4472c4;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="30" y="1370" width="270" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="auth_session" value="&lt;b&gt;AUTH_SESSION&lt;/b&gt;&lt;br&gt;session_id PK&lt;br&gt;investigator_id FK&lt;br&gt;session_token_hash UQ&lt;br&gt;created_at / expires_at&lt;br&gt;last_seen_at&lt;br&gt;revoked_at&lt;br&gt;user_agent_hash" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae3f3;strokeColor=#4472c4;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="330" y="1370" width="285" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="source_ingestion_batch" value="&lt;b&gt;SOURCE_INGESTION_BATCH&lt;/b&gt;&lt;br&gt;batch_id PK&lt;br&gt;source_institution_id FK&lt;br&gt;submitted_by FK&lt;br&gt;case_id FK&lt;br&gt;context_id FK&lt;br&gt;batch_reference UQ&lt;br&gt;payload_hash&lt;br&gt;record_count / status&lt;br&gt;created_at / completed_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d9e1f2;strokeColor=#4472c4;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="645" y="1370" width="325" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="source_ingestion_record" value="&lt;b&gt;SOURCE_INGESTION_RECORD&lt;/b&gt;&lt;br&gt;ingestion_record_id PK&lt;br&gt;batch_id FK&lt;br&gt;source_institution_id FK&lt;br&gt;context_id FK&lt;br&gt;record_type&lt;br&gt;source_record_hash UQ per context&lt;br&gt;target_id&lt;br&gt;created_at" vertex="1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d9e1f2;strokeColor=#4472c4;fontColor=#000000;align=left;verticalAlign=top;spacingTop=8;spacingLeft=8;">
+          <mxGeometry x="1000" y="1370" width="315" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;&lt;br&gt;Blue: source and actor data&lt;br&gt;Pale blue: authentication and ingestion provenance&lt;br&gt;Yellow: scoped protected identifiers&lt;br&gt;Green: transaction graph and path analysis&lt;br&gt;Purple: case governance and disclosure&lt;br&gt;Gray: evidence and audit integrity" vertex="1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=12;fontColor=#404040;">
+          <mxGeometry x="1360" y="1370" width="650" height="90" as="geometry" />
         </mxCell>
 
         <mxCell id="e1" value="employs" edge="1" parent="1" source="institution" target="investigator" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
@@ -193,6 +206,30 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e34" value="authors" edge="1" parent="1" source="investigator" target="case_note" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" value="has credential" edge="1" parent="1" source="investigator" target="investigator_credential" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERone;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e36" value="creates sessions" edge="1" parent="1" source="investigator_credential" target="auth_session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e37" value="submits" edge="1" parent="1" source="institution" target="source_ingestion_batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e38" value="authored by" edge="1" parent="1" source="investigator" target="source_ingestion_batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e39" value="bound to case" edge="1" parent="1" source="fraud_case" target="source_ingestion_batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e40" value="uses context" edge="1" parent="1" source="token_context" target="source_ingestion_batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e41" value="contains records" edge="1" parent="1" source="source_ingestion_batch" target="source_ingestion_record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e42" value="source of" edge="1" parent="1" source="institution" target="source_ingestion_record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

@@ -1,8 +1,12 @@
 const state = {
-  health: { mode: 'mock', status: 'loading' },
+  health: { mode: 'mock', status: 'loading', consoleIngestionEnabled: true },
+  authMode: 'demo',
+  authenticated: true,
+  loginBusy: false,
   session: null,
   dashboard: null,
   cases: [],
+  institutions: [],
   selectedCaseId: null,
   detail: null,
   analysis: null,
@@ -11,10 +15,12 @@ const state = {
   caseFilters: { status: '', severity: '', sort: 'opened' },
   revealRequests: [],
   auditEvents: [],
+  ingestionBatches: [],
   auditVerification: null,
   query: '',
   view: 'overview',
   modal: null,
+  adapterDraft: null,
   busy: false,
   error: null
 };
@@ -92,7 +98,9 @@ async function api(path, options = {}) {
   const payload = contentType.includes('application/json') ? await response.json() : await response.text();
   if (!response.ok) {
     const message = typeof payload === 'object' ? payload.error : payload;
-    throw new Error(message || `Request failed (${response.status})`);
+    const error = new Error(message || `Request failed (${response.status})`);
+    error.status = response.status;
+    throw error;
   }
   return payload;
 }
@@ -145,6 +153,28 @@ function caseAccounts(detail) {
   return [...map.values()];
 }
 
+function preferredCaseId(cases) {
+  return cases.find((item) => Number(item.pathCount || 0) > 0 || Number(item.riskScore || 0) >= 0.8)?.id || cases[0]?.id || null;
+}
+
+function renderLogin() {
+  return `<main class="auth-shell">
+    <section class="auth-card" aria-labelledby="login-title">
+      <div class="brand auth-brand"><div class="brand-mark">TS</div><div><div class="brand-name">TraceShield X</div><div class="brand-caption">Investigation console</div></div></div>
+      <div class="section-kicker">Protected operator access</div>
+      <h1 id="login-title">Enter the investigation boundary.</h1>
+      <p class="auth-copy">Use your assigned investigator credential. Raw identity data stays outside this console until an approved reveal is recorded.</p>
+      ${state.error ? `<div class="error-banner" role="alert">${escapeHtml(state.error)}</div>` : ''}
+      <form class="auth-form" data-form="login">
+        <div class="field"><label for="login-name">Login name</label><input id="login-name" name="loginName" autocomplete="username" required autofocus /></div>
+        <div class="field"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required /></div>
+        <button class="button primary auth-submit" type="submit" ${state.loginBusy ? 'disabled' : ''}>${state.loginBusy ? 'Signing in…' : 'Sign in securely'}</button>
+      </form>
+      <div class="auth-foot"><span>Session duration: 8 hours</span><span>Identity fields masked</span></div>
+    </section>
+  </main>`;
+}
+
 function renderSidebar() {
   const pendingCount = Number(state.dashboard?.pendingReveals || state.revealRequests.filter((item) => item.status === 'PENDING').length || 0);
   const nav = [
@@ -179,6 +209,7 @@ function renderSidebar() {
             <div class="operator-role">${escapeHtml(state.session?.investigator?.role || 'Investigator')}</div>
           </div>
         </div>
+        ${state.authMode === 'session' ? '<button class="button ghost small logout-button" type="button" data-action="logout">Sign out</button>' : ''}
       </div>
     </aside>`;
 }
@@ -327,6 +358,33 @@ function renderEvidence(detail) {
   </table></div>`;
 }
 
+function renderIngestionBatches() {
+  const batches = state.ingestionBatches || [];
+  if (!batches.length) return `<div class="empty compact"><strong>No institution batches in scope</strong>Validated source batches will appear here after an adapter submits protected records.</div>`;
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Batch</th><th>Institution</th><th>Records</th><th>Status</th><th>Context / created</th></tr></thead>
+    <tbody>${batches.map((batch) => `<tr>
+      <td><strong class="mono">${escapeHtml(batch.batchReference)}</strong><br><span class="muted">${escapeHtml(batch.sourceSystem || 'institution adapter')}</span></td>
+      <td>${escapeHtml(batch.sourceInstitutionCode || 'Protected institution')}</td>
+      <td>${escapeHtml(batch.recordCount ?? 0)}</td>
+      <td>${badge(batch.status || 'RECEIVED')}</td>
+      <td><span class="mono">${escapeHtml(shortId(batch.contextId, 16))}</span><br><span class="muted">${formatDate(batch.createdAt)}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function createAdapterDraft() {
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  const institution = state.institutions.find((item) => Number(item.id) === Number(state.session?.investigator?.institutionId)) || state.institutions[0];
+  return {
+    sourceInstitutionCode: institution?.code || 'NSB',
+    batchReference: `console-${suffix}`,
+    senderRef: `console-sender-${suffix}`,
+    receiverRef: `console-receiver-${suffix}`,
+    amount: '1750'
+  };
+}
+
 function renderComplaints(detail) {
   const complaints = detail?.complaints || [];
   if (!complaints.length) return `<div class="empty"><strong>No complaints in scope</strong>Customer or authority reports will be linked to the case without exposing raw identity.</div>`;
@@ -402,6 +460,7 @@ function renderDetail() {
         <section class="section-card"><div class="section-card-header"><div><h3 class="section-card-title">Case timeline</h3><div class="section-card-caption">Events ordered by observed time</div></div></div><div class="section-card-body">${renderTimeline()}</div></section>
         <section class="section-card"><div class="section-card-header"><div><h3 class="section-card-title">Complaint register</h3><div class="section-card-caption">Purpose-limited reports linked to this case</div></div></div><div class="section-card-body">${renderComplaints(detail)}</div></section>
         <section class="section-card"><div class="section-card-header"><div><h3 class="section-card-title">Evidence register</h3><div class="section-card-caption">Hash commitments and provenance</div></div></div><div class="section-card-body">${renderEvidence(detail)}</div></section>
+        <section class="section-card ingestion-card"><div class="section-card-header"><div><h3 class="section-card-title">Institution ingestion</h3><div class="section-card-caption">Committed batches inside this case’s token context</div></div><div class="section-card-header-actions"><span class="section-card-caption">${state.ingestionBatches.length} batch(es)</span><button class="button small" type="button" data-action="submit-ingestion" data-testid="open-adapter-batch" ${state.health.consoleIngestionEnabled === false ? 'disabled title="Console ingestion is disabled; use the signed adapter CLI."' : ''}>Send batch</button></div></div><div class="section-card-body">${renderIngestionBatches()}</div></section>
         <section class="section-card"><div class="section-card-header"><div><h3 class="section-card-title">Audit chain</h3><div class="section-card-caption">Append-only case activity</div></div><button class="button small" type="button" data-action="verify-audit">Verify</button></div><div class="section-card-body">${renderAudit(detail)}</div></section>
       </div>
     </div>
@@ -435,6 +494,29 @@ function renderModal() {
         <div class="field"><label for="reveal-reason">Reason and next action</label><textarea id="reveal-reason" name="reason" required placeholder="Explain why the identity is necessary and what action follows."></textarea></div>
       </div>
       <div class="modal-footer"><button class="button" type="button" data-action="close-modal">Cancel</button><button class="button primary" type="submit">Submit for approval</button></div>
+    </form></div>`;
+  }
+  if (state.modal.type === 'ingestion') {
+    const draft = state.adapterDraft || createAdapterDraft();
+    const institutionOptions = state.institutions.length
+      ? state.institutions.map((institution) => `<option value="${escapeHtml(institution.code)}" ${institution.code === draft.sourceInstitutionCode ? 'selected' : ''}>${escapeHtml(institution.code)} · ${escapeHtml(institution.name)}</option>`).join('')
+      : '<option value="NSB" selected>NSB · Northstar Bank</option>';
+    return `<div class="modal-backdrop" data-action="close-modal"><form class="modal adapter-modal" data-form="ingestion" method="post">
+      <div class="modal-header"><div><h2 class="modal-title">Submit a protected source batch</h2><p class="panel-caption">This uses the same signed adapter contract as an institution service. References below are synthetic and never become raw identity fields.</p></div><button class="button ghost" type="button" data-action="close-modal" aria-label="Close">x</button></div>
+      <div class="modal-body">
+        <div class="planner-note adapter-note"><strong>Privacy boundary stays active</strong><span>The server derives context-bound tokens, commits the batch transactionally, and records provenance plus a DATA_INGESTED audit event.</span></div>
+        <div class="adapter-grid">
+          <div class="field"><label for="adapter-institution">Source institution</label><select id="adapter-institution" name="sourceInstitutionCode">${institutionOptions}</select></div>
+          <div class="field"><label for="adapter-amount">Amount input</label><input id="adapter-amount" name="amount" type="number" min="1" step="0.01" value="${escapeHtml(draft.amount)}" required /></div>
+        </div>
+        <div class="field"><label for="adapter-reference">Stable batch reference</label><input id="adapter-reference" name="batchReference" value="${escapeHtml(draft.batchReference)}" maxlength="120" required /></div>
+        <div class="adapter-grid">
+          <div class="field"><label for="adapter-sender">Source-local sender reference</label><input id="adapter-sender" name="senderRef" value="${escapeHtml(draft.senderRef)}" maxlength="256" required /></div>
+          <div class="field"><label for="adapter-receiver">Source-local receiver reference</label><input id="adapter-receiver" name="receiverRef" value="${escapeHtml(draft.receiverRef)}" maxlength="256" required /></div>
+        </div>
+        <p class="modal-help">The source references are used only inside the adapter request. The shared database receives protected digests and commitments.</p>
+      </div>
+      <div class="modal-footer"><button class="button" type="button" data-action="close-modal">Cancel</button><button class="button primary" type="submit">${state.busy ? 'Submitting…' : 'Commit protected batch'}</button></div>
     </form></div>`;
   }
   return '';
@@ -551,6 +633,11 @@ function initMotion() {
 }
 
 function render() {
+  if (state.authenticated === false) {
+    app.innerHTML = renderLogin();
+    document.querySelector('#login-name')?.focus();
+    return;
+  }
   app.innerHTML = `${renderSidebar()}<main class="main">
     <header class="topbar"><div><div class="eyebrow">Investigator workspace</div><p>Follow the evidence. Protect the person.</p></div><div class="topbar-actions"><div class="mode-pill"><span class="mode-dot"></span>${escapeHtml(state.health.mode === 'postgres' ? 'PostgreSQL connected' : 'Demo repository')}</div><button class="button topbar-new-case" type="button" data-action="new-case">New case</button></div></header>
     ${state.error ? `<div class="error-banner">${escapeHtml(state.error)}</div>` : ''}
@@ -572,13 +659,14 @@ async function loadCase(caseId) {
   state.error = null;
   render();
   try {
-    const [detail, revealRequests, auditEvents, analysis, timeline, notes] = await Promise.all([
+    const [detail, revealRequests, auditEvents, analysis, timeline, notes, ingestionBatches] = await Promise.all([
       api(`/api/cases/${encodeURIComponent(caseId)}`),
       api(`/api/reveal-requests?caseId=${encodeURIComponent(caseId)}`),
       api(`/api/audit?caseId=${encodeURIComponent(caseId)}`),
       api(`/api/cases/${encodeURIComponent(caseId)}/analysis`),
       api(`/api/cases/${encodeURIComponent(caseId)}/timeline`),
-      api(`/api/cases/${encodeURIComponent(caseId)}/notes`)
+      api(`/api/cases/${encodeURIComponent(caseId)}/notes`),
+      api(`/api/ingestion/batches?caseId=${encodeURIComponent(caseId)}`)
     ]);
     state.detail = detail;
     state.analysis = analysis;
@@ -586,6 +674,7 @@ async function loadCase(caseId) {
     state.notes = notes;
     state.revealRequests = revealRequests;
     state.auditEvents = auditEvents;
+    state.ingestionBatches = ingestionBatches;
   } catch (error) {
     setError(error);
     showToast(error.message, 'error');
@@ -596,7 +685,7 @@ async function loadCase(caseId) {
 async function refreshDashboard() {
   state.dashboard = await api('/api/dashboard');
   state.cases = await api('/api/cases');
-  if (!state.selectedCaseId && state.cases[0]) state.selectedCaseId = state.cases[0].id;
+  if (!state.selectedCaseId && state.cases[0]) state.selectedCaseId = preferredCaseId(state.cases);
 }
 
 async function traceSelectedCase() {
@@ -686,6 +775,66 @@ async function submitReveal(form) {
   }
 }
 
+async function submitIngestion(form) {
+  if (!state.detail || state.busy) return;
+  const data = new FormData(form);
+  const caseId = state.detail.id;
+  const batchReference = String(data.get('batchReference') || '').trim();
+  const senderRef = String(data.get('senderRef') || '').trim();
+  const receiverRef = String(data.get('receiverRef') || '').trim();
+  const amount = Number(data.get('amount'));
+  const sourceInstitutionCode = String(data.get('sourceInstitutionCode') || '').trim().toUpperCase();
+  const observedAt = new Date().toISOString();
+  const occurredAt = new Date(Date.now() - 60_000).toISOString();
+  const transactionSourceRecordId = `${batchReference}-transaction`;
+  const batch = {
+    caseId,
+    sourceInstitutionCode,
+    batchReference,
+    sourceSystem: 'investigator-console-adapter-v1',
+    records: {
+      accounts: [
+        { sourceAccountRef: senderRef, accountType: 'SAVINGS', status: 'ACTIVE' },
+        { sourceAccountRef: receiverRef, accountType: 'CURRENT', status: 'ACTIVE' }
+      ],
+      transactions: [{
+        sourceRecordId: transactionSourceRecordId,
+        sourceAccountRef: senderRef,
+        receiverAccountRef: receiverRef,
+        amount,
+        currencyCode: 'INR',
+        paymentRail: 'UPI',
+        transactionType: 'TRANSFER',
+        transactionStatus: 'COMPLETED',
+        occurredAt,
+        observedAt,
+        caseRelevance: 'CANDIDATE'
+      }],
+      evidence: [{
+        evidenceType: 'SOURCE_TRANSACTION',
+        transactionSourceRecordId,
+        sourceRecordHash: `sha256:console-${batchReference}`,
+        contentCommitment: `sha256:console-content-${batchReference}`,
+        capturedAt: observedAt,
+        integrityStatus: 'VERIFIED'
+      }]
+    }
+  };
+  state.busy = true;
+  try {
+    const result = await api('/api/ingestion/console', { method: 'POST', body: JSON.stringify(batch) });
+    state.modal = null;
+    await loadCase(caseId);
+    showToast(result.status === 'DUPLICATE' ? 'The same protected batch was already committed.' : 'Protected institution batch committed and audited.');
+  } catch (error) {
+    setError(error);
+    showToast(error.message, 'error');
+  } finally {
+    state.busy = false;
+    render();
+  }
+}
+
 async function decideReveal(requestId, decision, approver = {}) {
   if (state.busy) return;
   state.busy = true;
@@ -759,6 +908,47 @@ async function submitNote(form) {
   }
 }
 
+async function submitLogin(form) {
+  const data = new FormData(form);
+  state.loginBusy = true;
+  state.error = null;
+  render();
+  try {
+    const result = await api('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ loginName: data.get('loginName'), password: data.get('password') })
+    });
+    state.authenticated = true;
+    state.session = { investigator: result.investigator };
+    await bootWorkspace();
+    showToast('Secure investigator session established.');
+  } catch (error) {
+    state.authenticated = false;
+    setError(error);
+    showToast(error.message, 'error');
+  } finally {
+    state.loginBusy = false;
+    render();
+  }
+}
+
+async function logout() {
+  try {
+    await api('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
+  } catch (error) {
+    setError(error);
+  }
+  state.authenticated = false;
+  state.session = null;
+  state.detail = null;
+  state.cases = [];
+  state.institutions = [];
+  state.ingestionBatches = [];
+  state.adapterDraft = null;
+  state.error = null;
+  render();
+}
+
 async function downloadReport() {
   if (!state.selectedCaseId || state.busy) return;
   try {
@@ -819,6 +1009,10 @@ async function handleClick(event) {
   } else if (action === 'request-reveal') {
     state.modal = { type: 'reveal' };
     render();
+  } else if (action === 'submit-ingestion') {
+    state.adapterDraft = createAdapterDraft();
+    state.modal = { type: 'ingestion' };
+    render();
   } else if (action === 'approve') {
     await decideReveal(target.dataset.requestId, 'APPROVE', { id: target.dataset.approverId, name: target.dataset.approverName, role: target.dataset.approverRole });
   } else if (action === 'reject') {
@@ -827,6 +1021,8 @@ async function handleClick(event) {
     await verifyAudit();
   } else if (action === 'download-report') {
     await downloadReport();
+  } else if (action === 'logout') {
+    await logout();
   }
 }
 
@@ -836,7 +1032,9 @@ async function handleSubmit(event) {
   event.preventDefault();
   if (form.dataset.form === 'create-case') await submitCase(form);
   if (form.dataset.form === 'create-reveal') await submitReveal(form);
+  if (form.dataset.form === 'ingestion') await submitIngestion(form);
   if (form.dataset.form === 'add-note') await submitNote(form);
+  if (form.dataset.form === 'login') await submitLogin(form);
 }
 
 function handleInput(event) {
@@ -884,30 +1082,53 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+async function bootWorkspace() {
+  const [session, dashboard, cases, reveals, institutions] = await Promise.all([
+    api('/api/session'),
+    api('/api/dashboard'),
+    api('/api/cases'),
+    api('/api/reveal-requests'),
+    api('/api/institutions')
+  ]);
+  state.session = session;
+  state.dashboard = dashboard;
+  state.cases = cases;
+  state.revealRequests = reveals;
+  state.institutions = institutions;
+  state.selectedCaseId = preferredCaseId(cases);
+  if (state.selectedCaseId) {
+    [state.detail, state.auditEvents, state.analysis, state.timeline, state.notes, state.ingestionBatches] = await Promise.all([
+      api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}`),
+      api(`/api/audit?caseId=${encodeURIComponent(state.selectedCaseId)}`),
+      api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/analysis`),
+      api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/timeline`),
+      api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/notes`),
+      api(`/api/ingestion/batches?caseId=${encodeURIComponent(state.selectedCaseId)}`)
+    ]);
+  }
+}
+
 async function boot() {
   try {
-    const [health, session, dashboard, cases, reveals] = await Promise.all([
-      api('/api/health'),
-      api('/api/session'),
-      api('/api/dashboard'),
-      api('/api/cases'),
-      api('/api/reveal-requests')
-    ]);
+    const health = await api('/api/health');
     state.health = health;
-    state.session = session;
-    state.dashboard = dashboard;
-    state.cases = cases;
-    state.revealRequests = reveals;
-    state.selectedCaseId = cases[0]?.id || null;
-    if (state.selectedCaseId) {
-      [state.detail, state.auditEvents, state.analysis, state.timeline, state.notes] = await Promise.all([
-        api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}`),
-        api(`/api/audit?caseId=${encodeURIComponent(state.selectedCaseId)}`),
-        api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/analysis`),
-        api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/timeline`),
-        api(`/api/cases/${encodeURIComponent(state.selectedCaseId)}/notes`)
-      ]);
+    state.authMode = health.authMode || 'env';
+    if (state.authMode === 'session') {
+      try {
+        const authSession = await api('/api/auth/session');
+        state.authenticated = authSession.authenticated === true;
+      } catch (error) {
+        if (error.status === 401) {
+          state.authenticated = false;
+          state.error = null;
+          render();
+          return;
+        }
+        throw error;
+      }
     }
+    state.authenticated = true;
+    await bootWorkspace();
   } catch (error) {
     setError(error);
     state.health = { mode: 'offline', status: 'error' };

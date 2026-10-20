@@ -75,8 +75,15 @@ The design assumes a protected key-management or tokenisation boundary outside t
 
 - `fund_path` stores a generated trace result and its certificate hash.
 - `path_hop` stores the ordered transactions and accounts that form a path.
-- `evidence_record` stores source commitments and integrity state, never raw evidence content.
+- `evidence_record` stores source commitments and integrity state, never raw evidence content. Its exactly-one-target rule can anchor an assertion to a transaction, alert, path, account, device, or network.
 - `audit_event` stores every ingestion, query, permission change, and reveal action in a hash-linked chain.
+
+### Authentication and ingestion boundary
+
+- `investigator_credential` stores only scrypt password hashes, failed-attempt counters, and lockout state.
+- `auth_session` stores only hashed, expiring, revocable session tokens and a hashed user-agent marker.
+- `source_ingestion_batch` binds a source submission to one case, token context, institution, payload commitment, and idempotency reference.
+- `source_ingestion_record` provides per-record provenance and prevents the same source commitment being silently replayed across batches.
 
 The application engine sits on top of this model as a privacy-safe read model. It converts persisted transactions and generated paths into a masked graph, explains risk indicators, recommends the minimum disclosure fields, and produces a report that deliberately omits raw account identifiers. This separation keeps UI convenience from becoming a new identity leak.
 
@@ -90,6 +97,8 @@ The application engine sits on top of this model as a privacy-safe read model. I
 - A case cannot use a token context after that context expires or is revoked.
 - A closed case cannot accept new evidence without an explicit reopening event.
 - A path hop must reference an existing transaction and must have a unique sequence number within its path.
+- A source batch reference is unique per source institution and remains bound to its original case/token context, while each source record hash is unique per institution, token context, and record type.
+- A replayed batch with the same payload commitment is idempotent; a changed payload under the same reference is rejected.
 - Evidence and audit rows are append-only. Corrections are represented as new events.
 - A reveal request cannot become approved until the configured number of distinct authorised roles approve it.
 - A reveal request cannot be created with fields outside the minimum-disclosure recommendation unless an explicit override is recorded for review.
@@ -106,11 +115,12 @@ The PostgreSQL implementation should include:
 - indexes on sender, receiver, transaction time, token context, and case membership;
 - row-level security or institution-scoped views;
 - masked investigator and unmasked supervisor views;
-- stored procedures for case creation, token-context creation, ingestion, tracing, reveal requests, and audit verification;
+- application/database services for authenticated case creation, token-context creation and rotation, transactional ingestion, tracing, reveal requests, and audit verification;
 - an append-only audit trigger or stored procedure that calculates a SHA-256 event hash;
 - synthetic seed data with both true fraud chains and false-positive device reuse.
 - an application service with request IDs, strict CORS, security headers, controlled status transitions, and privacy-safe report export.
 - an HTTP integration test covering minimum disclosure, dual control, notes, audit verification, and raw-identity exclusion.
+- session-authentication and ingestion tests covering actor resolution, HMAC context separation, duplicate replay, rollback, and raw-value exclusion.
 
 ## 9. Demonstration workflow
 
@@ -159,10 +169,12 @@ Person 2 owns the investigator-facing read and decision layer:
 - `investigation-engine.js` is pure, testable logic for path explanations, risk bands, graph construction, minimum disclosure, timelines, and privacy-safe reports.
 - `server.js` is the HTTP boundary. It resolves the current session actor, validates workflow values, enforces request policy, and attaches a request ID to errors and responses.
 - `repository.js` has both a deterministic mock adapter and a PostgreSQL adapter. Both expose the same case, trace, reveal, note, audit, and report contract.
-- `public/app.js` and `public/styles.css` provide the responsive investigator workspace: case filters, decision brief, protected graph, trace action, reveal queue, notes, timeline, and export.
+- `auth.js` and the PostgreSQL repository provide scrypt credentials, lockout counters, hashed sessions, logout revocation, and request-scoped actor context.
+- `ingestion-engine.js` and the PostgreSQL repository provide canonical validation, context-bound HMAC tokens, idempotency, provenance rows, and transactional source writes.
+- `public/app.js` and `public/styles.css` provide the responsive investigator workspace: case filters, decision brief, protected graph, trace action, reveal queue, notes, timeline, ingestion/provenance panel, and export.
 - The UI never receives raw account identifiers. The graph and report use protected tokens, institution labels, evidence commitments, and bounded amounts.
 
-Person 1 still has to connect the real authentication/session provider and source-ingestion pipeline. The current demo session is explicit and synthetic; it is not a production identity system.
+The local Person 1 implementation is complete for synthetic/controlled data, including a signed synthetic adapter and a development-only server-side console adapter. Production deployment still requires an institution-approved adapter, a managed secret/key boundary, MFA/identity-provider policy, least-privilege database roles, TLS/monitoring/backup operations, and approved identity governance. The operational requirements are recorded in `TraceShield_X_Operations_Runbook.md`.
 
 ## 13. Claim-oriented technical contribution map
 
@@ -175,11 +187,16 @@ The project should be explained as a concrete database-and-application mechanism
 5. A role-separated reveal protocol requires independently resolved supervisor and auditor approvals; a database trigger verifies that the stored role matches the active approver record.
 6. Hash-linked audit events and append-only evidence, notes, and approval records preserve the decision history without putting the revealed identity into the shared graph.
 
-The defensible novelty is the interaction of these boundaries: privacy is applied to the investigative graph, the decision workflow, and the audit trail together. A formal patent opinion still requires a prior-art search and professional claim drafting; this document is an invention-oriented technical specification, not a guarantee of patentability.
+The defensible technical contribution to investigate is the interaction of these boundaries: privacy is applied to the investigative graph, the decision workflow, and the audit trail together. The evidence map, benchmark plan, and initial prior-art comparison are in `TraceShield_X_Patent_Evidence.md`. A formal patent opinion still requires professional search and claim drafting; this document is an invention-oriented technical specification, not a guarantee of patentability.
 
 ## 14. Deliverables
 
 - `ER Diagram TraceShield X.drawio`: redesigned conceptual ER diagram.
-- `TraceShield X schema.sql`: PostgreSQL schema, constraints, indexes, views, and stored routines.
+- `TraceShield_X_schema.sql`: PostgreSQL schema, constraints, indexes, views, stored routines, RLS, credentials, sessions, and ingestion provenance.
 - `TraceShield X Project Design.docx`: polished project proposal for submission.
-- Synthetic seed and test cases should be added next so the recursive trace and privacy controls can be demonstrated end to end.
+- `TraceShield_X_demo_seed.sql`: synthetic cross-institution chain and audit seed.
+- `TraceShield_X_Person1_API_Contract.md`: adapter contract and privacy guarantees.
+- `TraceShield_X_Operations_Runbook.md`: deployment and incident-response handoff.
+- `TraceShield_X_Patent_Evidence.md`: evidence map, benchmarks, and prior-art comparison.
+- `.github/workflows/ci.yml`: Node 20/22 syntax and test quality gate.
+- `investigation-app/test`: automated unit, HTTP, authentication, and ingestion-normalization tests.

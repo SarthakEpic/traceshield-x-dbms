@@ -22,7 +22,11 @@ async function request(baseUrl, route, options = {}) {
 }
 
 async function waitForHealth(baseUrl, child) {
-  const deadline = Date.now() + 8000;
+  // Windows developer machines can take a few seconds to spawn Node and bind
+  // a fresh loopback listener when PostgreSQL or antivirus scanning is active.
+  // The test remains bounded, but avoids treating startup jitter as an API
+  // failure.
+  const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`Test server exited with code ${child.exitCode}`);
     try {
@@ -41,7 +45,7 @@ test('mock HTTP workflow enforces privacy, dual control, notes, and report safet
   const baseUrl = `http://127.0.0.1:${port}`;
   const child = spawn(process.execPath, ['server.js'], {
     cwd: appDir,
-    env: { ...process.env, DATA_MODE: 'mock', DATABASE_URL: '', PORT: String(port) },
+    env: { ...process.env, DATA_MODE: 'mock', AUTH_MODE: 'demo', DATABASE_URL: '', PORT: String(port) },
     stdio: 'ignore'
   });
 

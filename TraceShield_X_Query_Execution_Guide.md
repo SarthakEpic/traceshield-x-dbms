@@ -8,7 +8,7 @@ The project has two complementary files:
 
 | File | Purpose |
 | --- | --- |
-| `investigation-app/investigation_queries.sql` | Fifteen labelled PostgreSQL queries covering security context, aggregation, joins, views, recursive tracing, approvals, evidence, complaints, audit verification, housekeeping, append-only notes and `EXPLAIN`. |
+| `investigation-app/investigation_queries.sql` | Eighteen labelled PostgreSQL queries covering security context, aggregation, joins, views, recursive tracing, approvals, evidence, complaints, audit verification, housekeeping, append-only notes, `EXPLAIN`, ingestion provenance, token epochs, and authentication posture. |
 | `investigation-app/run-query-demo.ps1` | Runs the SQL pack against a real PostgreSQL database and saves the terminal output as a timestamped transcript. |
 
 The runner uses the seeded database values, keeps the RLS request context active for the entire run, prints every SQL statement, shows execution timing, and finishes with `ROLLBACK`. Therefore the demonstration is read-only and does not modify the shared database.
@@ -19,13 +19,15 @@ The runner uses the seeded database values, keeps the RLS request context active
 2. Create a database named `traceshield`.
 3. Apply the schema from the project root.
 4. Apply the demo seed from the project root.
-5. Confirm that `psql` is installed.
+5. If the database was created with an older schema, apply `TraceShield_X_person1_migration.sql`.
+6. Confirm that `psql` is installed.
 
 Example using the PostgreSQL terminal:
 
 ```powershell
 psql -U postgres -d traceshield -f "D:\Projects\DBMS Project\TraceShield_X_schema.sql"
 psql -U postgres -d traceshield -f "D:\Projects\DBMS Project\TraceShield_X_demo_seed.sql"
+psql -U postgres -d traceshield -f "D:\Projects\DBMS Project\TraceShield_X_person1_migration.sql"
 ```
 
 If PostgreSQL asks for a password, enter the password for the local `postgres` role. The schema and seed are real database setup; no mock data mode is involved in this workflow.
@@ -35,7 +37,7 @@ If PostgreSQL asks for a password, enter the password for the local `postgres` r
 ```powershell
 cd "D:\Projects\DBMS Project\investigation-app"
 $env:PGPASSWORD = "your_password"
-$env:TRACESHIELD_DATABASE_URL = "postgresql://postgres@localhost:5432/traceshield"
+$env:TRACESHIELD_DATABASE_URL = "postgresql://traceshield_app@localhost:5432/traceshield"
 .\run-query-demo.ps1
 ```
 
@@ -55,7 +57,7 @@ If the database uses different IDs, pass them explicitly:
 
 ```powershell
 .\run-query-demo.ps1 `
-  -DatabaseUrl "postgresql://postgres@localhost:5432/traceshield" `
+  -DatabaseUrl "postgresql://traceshield_app@localhost:5432/traceshield" `
   -InvestigatorId 1 `
   -InstitutionId 101 `
   -CaseId "11111111-1111-4111-8111-111111111111"
@@ -82,6 +84,8 @@ Open the generated transcript and show these sections:
 | Q15 | `EXPLAIN (ANALYZE, BUFFERS)` query-plan evidence. |
 
 The important proof is not only the result rows. Each transcript section shows the executed SQL, the returned table, and the measured duration.
+
+The query pack is also compatible with the explicit least-privilege role after applying `TraceShield_X_least_privilege.sql`; reporting views and the two verification/trace functions are granted explicitly, while password/session tables remain column-restricted. The final acceptance transcript is recorded in `TraceShield_X_PostgreSQL_Acceptance_2026-10-21.md`.
 
 ## Expected seeded evidence
 
