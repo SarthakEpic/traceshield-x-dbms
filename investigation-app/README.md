@@ -60,10 +60,11 @@ Invoke-RestMethod http://localhost:4170/api/health
 ## Connect PostgreSQL
 
 1. Apply `TraceShield_X_schema.sql` from the project root to a PostgreSQL database.
-2. Apply `TraceShield_X_demo_seed.sql` for the synthetic case, or provide your own institutions, investigators, and case access.
-3. If the database predates the combined schema, apply `TraceShield_X_person1_migration.sql` once.
-4. Set `DATA_MODE=postgres`, `AUTH_MODE=session`, `DATABASE_URL`, `DB_SCHEMA`, and `TRACESHIELD_TOKEN_SECRET` using `.env.example`.
-5. Provision a credential with `npm run bootstrap:credential` and start the server.
+2. Apply `TraceShield_X_demo_seed.sql` for the base synthetic case, or provide your own institutions, investigators, and case access.
+3. Optionally apply `TraceShield_X_presentation_seed.sql` to add four more synthetic cases, completed money paths, evidence, notes, complaints, and approval requests for a richer viva/demo walkthrough.
+4. If the database predates the combined schema, apply `TraceShield_X_person1_migration.sql` once.
+5. Set `DATA_MODE=postgres`, `AUTH_MODE=session`, `DATABASE_URL`, `DB_SCHEMA`, and `TRACESHIELD_TOKEN_SECRET` using `.env.example`.
+6. Provision a credential with `npm run bootstrap:credential` and start the server.
 
 For a quick local setup:
 
@@ -84,7 +85,7 @@ npm run bootstrap:credential
 npm start
 ```
 
-Open `http://localhost:4170`, sign in, and use the seeded case. Click “Send batch” to demonstrate a protected PostgreSQL commit from the UI, or run `npm run adapter:demo` to exercise the external signed-adapter path. For explicitly approved local DBMS troubleshooting only, set `AUTH_MODE=env ALLOW_INSECURE_ENV_AUTH=true` and provide `INVESTIGATOR_ID=1` and `INSTITUTION_ID=101`.
+Open `http://localhost:4170`, sign in, and use the seeded cases. The presentation seed gives you a high-risk path, a conflicting-evidence recovery case, a paused refund-loop case, a closed false-positive case, and three pending approval requests. Click “Add data” to demonstrate a protected PostgreSQL commit from the UI, or run `npm run adapter:demo` to exercise the external signed-adapter path. For explicitly approved local DBMS troubleshooting only, set `AUTH_MODE=env ALLOW_INSECURE_ENV_AUTH=true` and provide `INVESTIGATOR_ID=1` and `INSTITUTION_ID=101`.
 
 The PostgreSQL repository sets the request context inside every database transaction. That is important because the schema's row-level security policies use `traceshield.investigator_id` and `traceshield.institution_id` to scope both source rows and case-level investigation rows, preventing an unscoped query from becoming a cross-tenant data leak. Trace results are persisted as `fund_path` and `path_hop` rows, and every important action adds an `audit_event`.
 
