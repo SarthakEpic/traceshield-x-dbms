@@ -211,6 +211,11 @@ function accountDisplay(account, fallbackId) {
   };
 }
 
+function renderErrorBanner({ retry = false } = {}) {
+  if (!state.error) return '';
+  return `<div class="error-banner" role="alert"><div class="error-banner-copy">${escapeHtml(state.error)}</div>${retry ? '<button class="button small" type="button" data-action="retry">Try again</button>' : ''}</div>`;
+}
+
 function caseAccounts(detail) {
   const map = new Map();
   const add = (account, id) => {
@@ -250,6 +255,16 @@ function renderLogin() {
       <div class="auth-foot"><span>Session duration: 8 hours</span><span>Identity fields masked</span></div>
     </section>
   </main>`;
+}
+
+function renderOffline() {
+  return `<main class="offline-shell"><section class="offline-card" role="alert">
+    <div class="brand"><div class="brand-mark">TS</div><div><div class="brand-name">TraceShield X</div><div class="brand-caption">Investigation console</div></div></div>
+    <div class="section-kicker">Connection check</div>
+    <h1>We could not reach the investigation console.</h1>
+    <p>The local service may still be starting, or the database connection may need attention. Your case data has not been changed.</p>
+    ${renderErrorBanner({ retry: true })}
+  </section></main>`;
 }
 
 function renderSidebar() {
@@ -708,9 +723,13 @@ function render() {
     document.querySelector('#login-name')?.focus();
     return;
   }
+  if (state.health.mode === 'offline' && state.health.status === 'error') {
+    app.innerHTML = renderOffline();
+    return;
+  }
   app.innerHTML = `${renderSidebar()}<main class="main" id="overview">
     <header class="topbar"><div><div class="eyebrow">Investigation workspace</div><p>Follow the evidence. Protect the person.</p></div><div class="topbar-actions"><div class="mode-pill"><span class="mode-dot"></span>${escapeHtml(state.health.mode === 'postgres' ? 'Database connected' : 'Demo data loaded')}</div></div></header>
-    ${state.error ? `<div class="error-banner">${escapeHtml(state.error)}</div>` : ''}
+    ${renderErrorBanner({ retry: state.health.mode === 'offline' })}
     ${renderHero()}
     ${renderMetrics()}
     ${renderStartGuide()}
@@ -1017,6 +1036,13 @@ async function logout() {
   render();
 }
 
+async function retryBoot() {
+  state.error = null;
+  state.health = { ...state.health, status: 'loading' };
+  render();
+  await boot();
+}
+
 async function downloadReport() {
   if (!state.selectedCaseId || state.busy) return;
   try {
@@ -1068,7 +1094,9 @@ async function handleClick(event) {
     return;
   }
   const action = target.dataset.action;
-  if (action === 'new-case') {
+  if (action === 'retry') {
+    await retryBoot();
+  } else if (action === 'new-case') {
     state.modal = { type: 'case' };
     render();
   } else if (action === 'close-modal') {
